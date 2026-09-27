@@ -1,0 +1,27 @@
+{
+  "name": "jev-copilot",
+  "version": "0.1.0",
+  "description": "Claude Code plugin that adds TypeSafe JEV (via OpenRouter) as a fast, typed System-1 decision layer: task routing, context ranking, completion review and tool-risk triage.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test \"dist/tests/*.test.js\"",
+    "eval": "node dist/src/cli.js eval",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "validate": "npx --yes @anthropic-ai/claude-code plugin validate . --strict"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CaptainDigitals/jev-copilot.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.18.6",
+    "typescript": "^5.9.2"
+  }
+}

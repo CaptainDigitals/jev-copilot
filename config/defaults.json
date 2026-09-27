@@ -1,0 +1,72 @@
+{
+  "mode": "enhance",
+  "jevModel": "typesafe/jev-1.13",
+  "endpoint": "https://openrouter.ai/api/alpha/decisions",
+  "completionReviewEnabled": true,
+  "toolGovernanceEnabled": false,
+  "sessionBudgetUsd": 0.25,
+  "network": {
+    "timeoutMs": 8000,
+    "maxRetries": 1,
+    "retryBaseDelayMs": 400
+  },
+  "limits": {
+    "minPromptChars": 40,
+    "maxPromptChars": 12000,
+    "maxCandidateFiles": 24,
+    "contextBatchSize": 12,
+    "maxRepairLoops": 2,
+    "maxStateChars": 60000,
+    "maxExcerptChars": 600,
+    "maxChangedFilesInReview": 40
+  },
+  "thresholds": {
+    "highConfidence": 0.9,
+    "mediumConfidence": 0.7,
+    "planComplexity": 2.0,
+    "crossFileScope": 0.7,
+    "testsRequired": 0.7,
+    "securitySensitive": 0.6,
+    "ambiguity": 0.6,
+    "context": { "full": 2.4, "excerpt": 1.5 },
+    "completion": {
+      "enhance": {
+        "implementationComplete": 0.8,
+        "unresolvedRequirement": 0.35,
+        "likelyRegression": 0.65,
+        "securityConcern": 0.4,
+        "testsSufficient": 0.5
+      },
+      "strict": {
+        "implementationComplete": 0.9,
+        "unresolvedRequirement": 0.25,
+        "likelyRegression": 0.5,
+        "securityConcern": 0.3,
+        "testsSufficient": 0.7
+      }
+    },
+    "tool": {
+      "askOnDestructive": true,
+      "askWhenTaskRelevantBelow": 0.4,
+      "askWhenHumanConfirmationAbove": 0.6
+    }
+  },
+  "pricing": {
+    "inputUsdPerMillion": 0.042,
+    "outputUsdPerMillion": 0
+  },
+  "cache": {
+    "enabled": true,
+    "ttlSeconds": 86400
+  },
+  "telemetry": {
+    "enabled": true,
+    "includeRawPrompts": false,
+    "includeSourceText": false
+  },
+  "excludedPaths": [
+    ".env", ".env.*", "**/*.pem", "**/*.key", "**/*id_rsa*", "**/.aws/**", "**/.ssh/**",
+    "**/credentials*", "**/secrets/**", "**/.npmrc", "**/.pypirc", "**/kubeconfig*",
+    "**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**"
+  ]
+}

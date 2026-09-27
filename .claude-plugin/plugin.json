@@ -1,0 +1,68 @@
+{
+  "name": "jev-copilot",
+  "displayName": "JEV Copilot",
+  "version": "0.1.0",
+  "description": "TypeSafe JEV via OpenRouter as a fast, typed System-1 decision layer for Claude Code: task routing, context ranking, completion review and tool-risk triage.",
+  "author": {
+    "name": "CaptainDigitals",
+    "url": "https://github.com/CaptainDigitals"
+  },
+  "homepage": "https://github.com/CaptainDigitals/jev-copilot",
+  "repository": "https://github.com/CaptainDigitals/jev-copilot",
+  "license": "MIT",
+  "keywords": ["jev", "typesafe", "openrouter", "routing", "verification", "context", "claude-code"],
+  "mcpServers": {
+    "jev": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/src/mcp/server.js"],
+      "env": {
+        "OPENROUTER_API_KEY": "${user_config.openrouter_api_key}",
+        "JEV_COPILOT_MODE": "${user_config.mode}",
+        "JEV_MODEL": "${user_config.jev_model}",
+        "JEV_COPILOT_COMPLETION_REVIEW": "${user_config.completion_review_enabled}",
+        "JEV_COPILOT_TOOL_GOVERNANCE": "${user_config.tool_governance_enabled}",
+        "JEV_COPILOT_SESSION_BUDGET_USD": "${user_config.session_budget_usd}"
+      }
+    }
+  },
+  "userConfig": {
+    "openrouter_api_key": {
+      "type": "string",
+      "title": "OpenRouter API key",
+      "description": "Used only by the local JEV runtime to call the OpenRouter Decisions API. Stored in your OS credential store. Leave empty to fall back to the OPENROUTER_API_KEY environment variable.",
+      "sensitive": true
+    },
+    "mode": {
+      "type": "string",
+      "title": "JEV Copilot mode",
+      "description": "assist = advisory only; enhance = automatic analysis + completion review (default); strict = tighter thresholds and fail-closed gates.",
+      "options": ["assist", "enhance", "strict"],
+      "default": "enhance"
+    },
+    "jev_model": {
+      "type": "string",
+      "title": "JEV model",
+      "description": "OpenRouter model id. Keep the pinned default for calibrated thresholds; ~typesafe/jev-latest tracks the newest release and may shift behavior.",
+      "default": "typesafe/jev-1.13"
+    },
+    "completion_review_enabled": {
+      "type": "boolean",
+      "title": "Completion review",
+      "description": "Run a JEV completion review when Claude stops after making changes (enhance/strict modes).",
+      "default": true
+    },
+    "tool_governance_enabled": {
+      "type": "boolean",
+      "title": "High-impact tool governance",
+      "description": "Add JEV semantic review to high-impact tool calls after deterministic classification. Read-only tools are never sent to JEV.",
+      "default": false
+    },
+    "session_budget_usd": {
+      "type": "number",
+      "title": "Session JEV budget (USD)",
+      "description": "Optional JEV calls stop once the estimated session spend exceeds this amount. 0 disables the budget.",
+      "default": 0.25,
+      "min": 0
+    }
+  }
+}

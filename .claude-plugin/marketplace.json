@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jev-copilot",
+  "description": "JEV Copilot: TypeSafe JEV decision layer for Claude Code.",
+  "owner": {
+    "name": "CaptainDigitals",
+    "url": "https://github.com/CaptainDigitals"
+  },
+  "plugins": [
+    {
+      "name": "jev-copilot",
+      "source": ".",
+      "description": "TypeSafe JEV via OpenRouter as a fast, typed System-1 decision layer for Claude Code.",
+      "category": "productivity",
+      "tags": ["jev", "typesafe", "openrouter", "verification", "context"]
+    }
+  ]
+}
