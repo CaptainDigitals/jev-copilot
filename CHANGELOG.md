@@ -16,4 +16,4 @@ First installable release.
 - Outbound secret redaction and path exclusion policy.
 - Deterministic repository context discovery (git, keywords, recent changes) feeding JEV ranking.
 - CLI (`dist/src/cli.js`) for status, analyze, context, review, assess, stats, eval and redaction checks.
-- 56 unit/contract/hook-replay tests, eval dataset, CI on Linux/macOS/Windows with manifest validation and a committed-secret scan.
+- 60 unit/contract/hook-replay tests (including bypass regressions for the hard-deny rules: long-option recursive deletes, split download-then-execute chains, credential reads by any verb, destructive SQL inside larger command lines), eval dataset, CI on Linux/macOS/Windows with manifest validation and a committed-secret scan.

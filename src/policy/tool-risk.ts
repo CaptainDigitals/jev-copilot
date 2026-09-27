@@ -33,12 +33,35 @@ function hasDangerousTarget(command: string): boolean {
   return command.split(/\s+/).some((token) => DANGEROUS_TOKEN.test(token));
 }
 
-const PIPE_TO_SHELL = /(?:curl|wget|iwr|Invoke-WebRequest|irm|Invoke-RestMethod)\b[^|;&]*\|\s*(?:sudo\s+)?(?:ba|z|k|da)?sh\b|\|\s*(?:iex|Invoke-Expression)\b/i;
+const DOWNLOADER = /\b(?:curl|wget|iwr|Invoke-WebRequest|irm|Invoke-RestMethod|Start-BitsTransfer)\b/i;
+/** A shell interpreter invoked as its own command token (not a ".sh" filename). */
+const SHELL_INVOCATION = /(?:^|[;&|(]\s*|\s)(?:sudo\s+)?(?:ba|z|k|da|fi)?sh(?:\s|$)|\b(?:iex|Invoke-Expression)\b|\b(?:powershell|pwsh)\b[^;&|]*-(?:c|command|file|enc)\b|(?:^|[;&|]\s*)(?:source|\.)\s+\S+|\b(?:python3?|node|perl|ruby)\s+(?:-c\s|\S+\.(?:py|js|pl|rb)\b)/i;
+/** Downloads remote content and, anywhere in the same command line, hands it to an interpreter. */
+function downloadsAndExecutes(command: string): boolean {
+  return DOWNLOADER.test(command) && SHELL_INVOCATION.test(command);
+}
 const FORCE_PUSH = /\bgit\s+push\b[^;&|]*(?:--force\b|-f\b|--force-with-lease\b)/i;
 const HISTORY_REWRITE = /\bgit\s+(?:reset\s+--hard|clean\s+-[a-z]*f|checkout\s+--\s+\.|restore\s+(?:--staged\s+)?\.|filter-branch|rebase\b|branch\s+-D)/i;
-const RECURSIVE_DELETE = /\b(?:rm\s+(?:-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r|-r)\b|rmdir\s+\/s|Remove-Item\b[^;&|]*-Recurse|del\s+\/[sq]|rd\s+\/s)/i;
-const DESTRUCTIVE_DB = /\b(?:DROP\s+(?:TABLE|DATABASE|SCHEMA)|TRUNCATE\s+TABLE|DELETE\s+FROM\s+\w+\s*;?\s*$|db:reset|migrate:fresh|prisma\s+migrate\s+reset|flushall|flushdb)\b/i;
-const CREDENTIAL_PATHS = /(?:\.ssh\/|\.aws\/|\.gnupg\/|\.kube\/config|kubeconfig|\.npmrc|\.pypirc|\.netrc|\.docker\/config\.json|\.env\b|id_rsa|id_ed25519|credentials|\.pem\b|\.key\b)/i;
+const DELETE_VERB = /^(?:sudo\s+)?(?:rm|del|erase|rd|rmdir|Remove-Item|ri)$/i;
+/** Splits a command line into simple commands on shell separators (quotes are not tracked; over-splitting only adds scrutiny). */
+function segments(command: string): string[][] {
+  return command.split(/\s*(?:\|\||&&|;|\||\n)\s*/).map((seg) => seg.trim().split(/\s+/).filter(Boolean)).filter((t) => t.length > 0);
+}
+/** Recursive delete detection by flag set: short combined flags, GNU long options and PowerShell switches. */
+function isRecursiveDelete(command: string): boolean {
+  return segments(command).some((tokens) => {
+    const verb = tokens.find((t) => !/^(?:sudo|env|nice|time)$/i.test(t)) ?? '';
+    if (!DELETE_VERB.test(verb)) return false;
+    return tokens.some((t) => /^-[a-z]*r[a-z]*$/i.test(t) || /^--recursive$/i.test(t) || /^-Recurse$/i.test(t) || /^\/s$/i.test(t) || /^-rf$|^-fr$/i.test(t));
+  });
+}
+const RECURSIVE_DELETE = { test: isRecursiveDelete };
+const DESTRUCTIVE_DB = /\b(?:DROP\s+(?:TABLE|DATABASE|SCHEMA|INDEX)|TRUNCATE(?:\s+TABLE)?\s+\w+|DELETE\s+FROM\s+[\w."`]+\s*(?:;|"|'|$)|db:reset|migrate:fresh|prisma\s+migrate\s+reset|flushall|flushdb)/i;
+/** Credential material that lives outside the repository; any mention is a hard deny. */
+const SYSTEM_CREDENTIAL_PATHS = /(?:(?:^|[\s"'=:/\\~])\.ssh(?![\w.-])|(?:^|[\s"'=:/\\~])\.aws(?![\w.-])|\.gnupg(?![\w.-])|\.kube[\\/]config|kubeconfig|\.netrc\b|\.docker[\\/]config\.json|\bid_rsa\b|\bid_ed25519\b|\bid_ecdsa\b|\.p12\b|\.pfx\b)/i;
+/** Credential-bearing files that may live in a repository; any mention requires confirmation. */
+const CREDENTIAL_PATHS = /(?:\.ssh(?![\w.-])|\.aws(?![\w.-])|\.gnupg(?![\w.-])|\.kube[\\/]config|kubeconfig|\.npmrc\b|\.pypirc\b|\.netrc\b|\.docker[\\/]config\.json|(?:^|[\s"'=/@,\\])\.env(?:\.[\w-]+)?\b|id_rsa|id_ed25519|credentials|\.pem\b|\.key\b|\.p12\b|\.pfx\b)/i;
+const EXFIL_TOOLS = /\b(?:curl|wget|scp|sftp|rsync|nc|ncat|netcat|ssh|tar|zip|7z|base64|xxd|od|hexdump|Invoke-WebRequest|iwr|Invoke-RestMethod|irm|Send-MailMessage)\b/i;
 const CREDENTIAL_COMMANDS = /\b(?:gh\s+auth\s+(?:login|logout|refresh|token)|aws\s+configure|gcloud\s+auth|az\s+login|vault\s+(?:write|kv\s+put)|docker\s+login|npm\s+(?:login|adduser|token)|op\s+(?:signin|item))\b/i;
 const DEPLOY = /\b(?:vercel\s+(?:--prod|deploy)|netlify\s+deploy|fly\s+deploy|heroku\s+(?:push|release)|kubectl\s+(?:apply|delete|rollout|scale|drain)|helm\s+(?:install|upgrade|uninstall|delete)|terraform\s+(?:apply|destroy)|pulumi\s+(?:up|destroy)|aws\s+\w+\s+(?:delete|terminate|put|update)|gcloud\s+\w+\s+(?:deploy|delete)|serverless\s+deploy|cdk\s+(?:deploy|destroy)|docker\s+(?:push|system\s+prune)|npm\s+publish|cargo\s+publish|twine\s+upload|gem\s+push)\b/i;
 const PERMISSIONS = /\b(?:chmod\s+(?:-R\s+)?[0-7]*7[0-7]{2}\b|chmod\s+[a-z+]*\+[rwx]*x?\s+\/|chown\s+-R|icacls\b[^;&|]*\/grant|setfacl|sudo\s+(?:su|visudo|passwd|useradd|usermod)|net\s+user\b|Set-ExecutionPolicy\s+Unrestricted|Add-LocalGroupMember)\b/i;
@@ -95,14 +118,16 @@ export function classifyToolAction(toolName: string, toolInput: Record<string, u
     const state = commandState(toolName, command);
     if (!command.trim()) return { category: 'read-only', hardDeny: false, requireConfirmation: false, reasons: ['empty command'], state };
 
-    if (PIPE_TO_SHELL.test(command)) reasons.push('pipes remote content into a shell');
-    if (RECURSIVE_DELETE.test(command) && state.affectsRepoBoundary) reasons.push('recursive delete targeting a root, home, parent or wildcard path');
+    if (downloadsAndExecutes(command)) reasons.push('downloads remote content and executes it');
+    if ((RECURSIVE_DELETE.test(command) || segments(command).some((t) => DELETE_VERB.test(t[0] ?? ''))) && state.affectsRepoBoundary) reasons.push('delete targeting a root, home, system, parent or wildcard path');
     if (SYSTEM_MUTATION.test(command)) reasons.push('mutates system or disk state');
     if (DESTRUCTIVE_DB.test(command)) reasons.push('destructive database command');
-    if (CREDENTIAL_COMMANDS.test(command) || (CREDENTIAL_PATHS.test(command) && /(?:>|rm\b|Remove-Item|mv\b|cp\b|cat\b|type\b|echo\b)/i.test(command))) reasons.push('touches credential stores or secret files');
+    if (CREDENTIAL_COMMANDS.test(command) || SYSTEM_CREDENTIAL_PATHS.test(command)) reasons.push('touches credential stores or private keys');
+    if (CREDENTIAL_PATHS.test(command) && EXFIL_TOOLS.test(command)) reasons.push('combines a credential file with a transfer or encoding tool');
     if (PERMISSIONS.test(command)) reasons.push('broadens permissions or privileges');
     if (reasons.length) return { category: 'destructive', hardDeny: true, requireConfirmation: true, reasons, state };
 
+    if (CREDENTIAL_PATHS.test(command)) reasons.push('references a credential or secret file');
     if (FORCE_PUSH.test(command)) reasons.push('force push rewrites remote history');
     if (HISTORY_REWRITE.test(command)) reasons.push('discards or rewrites local work/history');
     if (RECURSIVE_DELETE.test(command)) reasons.push('recursive delete');

@@ -45,7 +45,7 @@ JEV verification ─ requirement coverage · regression · security · completio
 |---|---|---|
 | You submit a substantive prompt | One JEV call classifies the task and injects a 7-line advisory profile plus a requirement contract (explicit items verbatim, inferred items marked) | ~$0.00002 |
 | Claude edits files or runs tests | Local change and test-evidence tracking. No JEV call. | $0 |
-| Claude is about to run a tool | Deterministic risk classifier. Hard rules (recursive delete at a root, credential access, `curl \| sh`, permission broadening, destructive SQL) ask for confirmation in `enhance` and deny in `strict`. With governance enabled, high-impact actions get a JEV second opinion. Read-only tools never touch JEV. | $0 or ~$0.00002 |
+| Claude is about to run a tool | Deterministic risk classifier. Hard rules (deletes at roots/home/system paths, private-key and credential-store access, download-then-execute chains in any form, permission broadening, destructive SQL) ask for confirmation in `enhance` and deny in `strict`. With governance enabled, high-impact actions get a JEV second opinion. Read-only tools never touch JEV. | $0 or ~$0.00002 |
 | Claude stops after making changes | Completion review: requirement coverage, completeness, test sufficiency, regression and security likelihood. Fails → Claude receives structured deficiencies and repairs (cap: 2 loops). | ~$0.00003 |
 
 Terminal output stays minimal:
