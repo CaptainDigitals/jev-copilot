@@ -7,6 +7,7 @@ import { profileContext, profileSummaryLine } from './policy/task-profile.js';
 import { classifyToolAction } from './policy/tool-risk.js';
 import { currentSessionId, loadSession, Runtime } from './runtime/index.js';
 import { redactTextDetailed } from './security/redact.js';
+import { runYouTube, YOUTUBE_HELP } from './cli-youtube.js';
 
 const HELP = `JEV Copilot CLI (shares runtime, cache and telemetry with the plugin hooks)
 
@@ -18,6 +19,9 @@ const HELP = `JEV Copilot CLI (shares runtime, cache and telemetry with the plug
   stats                  session telemetry
   eval                   run tests/evals/cases.jsonl against live JEV and report accuracy
   redact <file>          show how many secrets the outbound redactor would mask in a file
+
+YouTube mass research (needs yt-dlp; transcripts only, never media):
+${YOUTUBE_HELP}
 `;
 
 function printStatus(report: Awaited<ReturnType<Runtime['status']>>): void {
@@ -122,6 +126,9 @@ async function main(argv: string[]): Promise<number> {
       return 0;
     case 'eval':
       return runEval(runtime);
+    case 'youtube':
+    case 'yt':
+      return runYouTube(rest, runtime);
     case 'redact': {
       const [file] = rest;
       if (!file) throw new Error('redact requires a file path');

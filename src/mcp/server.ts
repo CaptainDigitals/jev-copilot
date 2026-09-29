@@ -7,6 +7,7 @@ import { currentSessionId, loadSession, Runtime } from '../runtime/index.js';
 import type { Requirement } from '../state/requirements.js';
 import { emptyChanges } from '../state/session-store.js';
 import { McpToolServer } from './jsonrpc.js';
+import { registerYouTubeTools } from './youtube-tools.js';
 
 function str(value: unknown, field: string, max = 20000): string {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`"${field}" must be a non-empty string`);
@@ -51,7 +52,7 @@ function parseRequirements(value: unknown): Requirement[] {
 }
 
 export function createServer(runtime: Runtime): McpToolServer {
-  const server = new McpToolServer({ name: 'jev-copilot', version: '0.1.0' });
+  const server = new McpToolServer({ name: 'jev-copilot', version: '0.2.0' });
   const cfg = runtime.config;
 
   server.register({
@@ -131,6 +132,7 @@ export function createServer(runtime: Runtime): McpToolServer {
     handler: async () => runtime.stats(),
   });
 
+  registerYouTubeTools(server, runtime);
   return server;
 }
 

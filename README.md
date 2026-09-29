@@ -67,10 +67,48 @@ JEV review: repair required (2 items)
 | `/jev-copilot:review [claim]` | `jev_review_completion` | Completion review on demand |
 | `/jev-copilot:stats` | `jev_session_stats` | Calls, cache hits, latency, cost, repairs |
 | `/jev-copilot:config-help` | – | Explains modes and options |
+| `/jev-copilot:youtube-*` | `jev_youtube_*` | YouTube mass research (see below) |
 | – | `jev_assess_tool_action` | Risk-classify a proposed tool call |
 | `@agent-jev-copilot:jev-verifier` | – | Evidence-based inspection of a concern JEV flagged |
 
-Three skills teach Claude the protocol: `jev-orchestrate` (division of labor and strategy mapping), `jev-review` (completion contract and repair discipline), `jev-context` (two-stage context selection that can never invent paths).
+Four skills teach Claude the protocol: `jev-orchestrate` (division of labor and strategy mapping), `jev-review` (completion contract and repair discipline), `jev-context` (two-stage context selection that can never invent paths) and `jev-research` (YouTube research and cited synthesis, below).
+
+## YouTube mass research
+
+<p align="center">
+  <img src="assets/jev-youtube-research-workflow.png" alt="How it works: the JEV YouTube research workflow - discover, ingest, screen with JEV, filter and route, deep reasoning, generate research, reuse knowledge" width="100%">
+</p>
+
+Point JEV Copilot at one video, a playlist, a channel, a topic, or a text file of URLs and it turns the corpus into **cited, cross-source research**. Transcripts are fetched with yt-dlp (captions only, never media) and chunked by chapter; every video and every chunk is screened by JEV for relevance, content type, technical depth, actionability, novelty, promotional intensity and evidence density. Policy code turns those typed answers into a research value and a route (`deep` / `focused` / `index` / `archive`), suppresses duplicates, and writes an evidence bundle in which every chunk carries a `[videoId@m:ss](url&t=Ns)` citation. Claude then synthesizes consensus, contradictions, unique findings, technical details, parts, procedures, failure modes, best sources and knowledge gaps. Popularity is never treated as quality.
+
+```text
+/jev-copilot:youtube-research "3D printer enclosure ventilation" --max 60
+/jev-copilot:youtube-analyze https://youtu.be/VIDEO_ID What does the build use?
+/jev-copilot:youtube-playlist https://www.youtube.com/playlist?list=PL... Which motor/ESC combos are used?
+/jev-copilot:youtube-compare https://youtu.be/A https://youtu.be/B
+/jev-copilot:youtube-parts https://youtu.be/A https://youtu.be/B
+/jev-copilot:youtube-ask yt-20260928-ab12cd "which firmware did people flash?"
+/jev-copilot:youtube-export yt-20260928-ab12cd
+```
+
+| Command | MCP tool | Purpose |
+|---|---|---|
+| `/jev-copilot:youtube-analyze` | `jev_youtube_research` | One video, every chunk screened, cited synthesis |
+| `/jev-copilot:youtube-playlist` | `jev_youtube_research` | Playlist or channel corpus against a question |
+| `/jev-copilot:youtube-research` | `jev_youtube_research` | Topic search, screening, routing, synthesis |
+| `/jev-copilot:youtube-compare` | `jev_youtube_research` | Comparison table across sources |
+| `/jev-copilot:youtube-parts` | `jev_youtube_research` | PART / TYPE / MODEL / COUNT / PRICE / TIMESTAMP table |
+| `/jev-copilot:youtube-export` | `jev_youtube_export` | Merge the synthesis into `report.md` and `report.json` |
+| `/jev-copilot:youtube-ask` | `jev_youtube_ask` | Follow-up question over a job or a named collection |
+| - | `jev_youtube_job`, `jev_youtube_bundle`, `jev_youtube_evidence` | Resume jobs, page artifacts, pull one video's evidence |
+
+**What it costs.** Screening is JEV only: about $0.07 for 100 videos (1.5 M transcript tokens). The engine estimates before spending and pauses when the estimate exceeds `budgetUsd` (default $5). Jobs persist per video and resume without re-fetching or re-screening; transcripts are cached across jobs and can be grouped into **collections** for follow-up questions.
+
+**Deep reasoning.** By default (`deep_model = claude-session`) Claude reads the evidence bundle in your session, so no second model or key is needed. For headless CLI runs set `--deep-model <openrouter chat model id>` and the engine performs per-video analysis and synthesis itself.
+
+**Requirements.** `yt-dlp` on the PATH (`python -m pip install -U yt-dlp`). Videos need creator or automatic captions; ASR and frame analysis are not part of this release.
+
+Full guide, pipeline details, storage layout and safety notes: [docs/YOUTUBE_RESEARCH.md](docs/YOUTUBE_RESEARCH.md).
 
 ## Install
 
@@ -175,6 +213,10 @@ node dist/src/cli.js assess Bash '{"command":"rm -rf /"}'
 ```
 
 ```bash
+node dist/src/cli.js youtube research "FPV drone frame design" --max 50 --collection drones
+```
+
+```bash
 npm run eval
 ```
 
@@ -186,10 +228,10 @@ npm run eval
 .claude-plugin/   plugin.json (manifest, userConfig, MCP server) and marketplace.json
 hooks/hooks.json  exec-form hooks → dist/src/hooks/runner.js
 commands/         /jev-copilot:* commands
-skills/           jev-orchestrate, jev-review, jev-context
+skills/           jev-orchestrate, jev-review, jev-context, jev-research
 agents/           jev-verifier
 config/           defaults.json (thresholds, limits, exclusions)
-src/              TypeScript runtime (core, jev, security, policy, state, context, hooks, mcp, cli)
+src/              TypeScript runtime (core, jev, security, policy, state, context, hooks, mcp, youtube, cli)
 dist/             committed build output (what Claude Code executes)
 tests/            node:test suite, fixtures, evals/cases.jsonl
 docs/             PRD, architecture, contracts, security, test plan, roadmap, configuration
@@ -205,7 +247,7 @@ npm ci && npm run typecheck && npm test
 
 ## Roadmap
 
-Phase 0–5 of [docs/ROADMAP.md](docs/ROADMAP.md) ship in 0.1.0 with tool governance off by default pending calibration. Next: adaptive per-repository thresholds, CI/headless mode, PR review mode, team policy bundles.
+Phase 0–5 of [docs/ROADMAP.md](docs/ROADMAP.md) shipped in 0.1.0; 0.2.0 adds the YouTube mass research engine (MVP). Next: ASR fallback for caption-less videos, frame analysis, a structured claim ledger with conflict resolution, semantic deduplication, adaptive per-repository thresholds, PR review mode.
 
 ## License
 

@@ -75,3 +75,20 @@ Exit: no hard-deny case can be auto-approved.
 - PR review mode
 - team policies
 - cost optimization recommendations
+
+## Phase 6 - YouTube mass research (0.2.0, MVP shipped)
+
+- discovery (video, playlist, channel, search, file, collection)
+- sandboxed yt-dlp ingestion (captions only), chapter-aware chunking
+- JEV video + chunk screening, research-value routing, deduplication
+- cost estimate, budget pause, resumable jobs, cross-job cache, collections
+- evidence bundle with citations; Claude-session or headless deep model; reports; follow-up ask
+
+Exit: `/jev-copilot:youtube-research` produces a cited report from a topic.
+
+## Phase 7 - Research depth (planned)
+
+- ASR fallback for caption-less videos (local Whisper), frame/vision analysis
+- structured claim ledger with conflict resolution and verification status
+- semantic (embedding) deduplication and cross-video merging
+- scheduled monitoring of channels and topics, incremental corpus updates

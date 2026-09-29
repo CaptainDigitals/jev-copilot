@@ -5,6 +5,7 @@ import { profileContext } from '../policy/task-profile.js';
 import { currentSessionId, loadSession, Runtime } from '../runtime/index.js';
 import { emptyChanges } from '../state/session-store.js';
 import { McpToolServer } from './jsonrpc.js';
+import { registerYouTubeTools } from './youtube-tools.js';
 function str(value, field, max = 20000) {
     if (typeof value !== 'string' || !value.trim())
         throw new Error(`"${field}" must be a non-empty string`);
@@ -49,7 +50,7 @@ function parseRequirements(value) {
     });
 }
 export function createServer(runtime) {
-    const server = new McpToolServer({ name: 'jev-copilot', version: '0.1.0' });
+    const server = new McpToolServer({ name: 'jev-copilot', version: '0.2.0' });
     const cfg = runtime.config;
     server.register({
         name: 'jev_status',
@@ -123,6 +124,7 @@ export function createServer(runtime) {
         inputSchema: { type: 'object', properties: {} },
         handler: async () => runtime.stats(),
     });
+    registerYouTubeTools(server, runtime);
     return server;
 }
 const invokedDirectly = process.argv[1] && /server\.(?:js|ts)$/.test(process.argv[1]);

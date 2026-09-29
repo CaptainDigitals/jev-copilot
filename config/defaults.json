@@ -28,7 +28,10 @@
     "testsRequired": 0.7,
     "securitySensitive": 0.6,
     "ambiguity": 0.6,
-    "context": { "full": 2.4, "excerpt": 1.5 },
+    "context": {
+      "full": 2.4,
+      "excerpt": 1.5
+    },
     "completion": {
       "enhance": {
         "implementationComplete": 0.8,
@@ -65,8 +68,67 @@
     "includeSourceText": false
   },
   "excludedPaths": [
-    ".env", ".env.*", "**/*.pem", "**/*.key", "**/*id_rsa*", "**/.aws/**", "**/.ssh/**",
-    "**/credentials*", "**/secrets/**", "**/.npmrc", "**/.pypirc", "**/kubeconfig*",
-    "**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**"
-  ]
+    ".env",
+    ".env.*",
+    "**/*.pem",
+    "**/*.key",
+    "**/*id_rsa*",
+    "**/.aws/**",
+    "**/.ssh/**",
+    "**/credentials*",
+    "**/secrets/**",
+    "**/.npmrc",
+    "**/.pypirc",
+    "**/kubeconfig*",
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/dist/**",
+    "**/build/**"
+  ],
+  "youtubeResearch": {
+    "ytDlpPath": "yt-dlp",
+    "ytDlpTimeoutMs": 60000,
+    "maxVideos": 100,
+    "maxTranscriptChars": 400000,
+    "languages": [
+      "en"
+    ],
+    "enableAsrFallback": false,
+    "chunk": {
+      "targetTokens": 2500,
+      "maxTokens": 3500,
+      "minTokens": 400
+    },
+    "chunksPerJevRequest": 4,
+    "workers": {
+      "metadata": 4,
+      "transcripts": 2,
+      "jev": 4,
+      "deep": 2
+    },
+    "routing": {
+      "deep": 0.8,
+      "focused": 0.6,
+      "archive": 0.35,
+      "weights": {
+        "relevance": 0.3,
+        "technicalDepth": 0.2,
+        "actionability": 0.2,
+        "novelty": 0.15,
+        "evidenceDensity": 0.15,
+        "promotionPenalty": 0.2
+      }
+    },
+    "deepModel": "claude-session",
+    "deepTimeoutMs": 120000,
+    "deepMaxInputChars": 60000,
+    "deepMaxOutputTokens": 2500,
+    "maxDeepChunksPerVideo": 12,
+    "maxDeepVideos": 20,
+    "budgetUsd": 5,
+    "dedupe": true,
+    "frames": {
+      "mode": "off"
+    }
+  }
 }

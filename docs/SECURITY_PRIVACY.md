@@ -114,3 +114,14 @@ Mitigation: minimal dependency graph, lockfile, release SBOM, dependency scannin
 ### API outage
 
 Mitigation: fail-open advisory mode; configurable strict-mode handling.
+
+## YouTube research: untrusted source text
+
+Everything the research engine reads from YouTube is attacker-controlled: titles, channel names, chapter titles and captions can contain anything, and a creator does not need you to visit their video; ranking on a topic is enough to be ingested by a search-driven job. The engine therefore treats all of it as data:
+
+- Titles, channel names and chapter titles are reduced to plain text (no Markdown or HTML syntax) before they appear in bundles, prompts, reports or tables.
+- Caption text is redacted for secrets and has images, links and raw HTML neutralised so a report can never become a tracking beacon or a fake link; passages that look like instructions ("ignore previous instructions", "system:", ...) are annotated as such rather than hidden.
+- Model-written analyses and syntheses get the same treatment except for engine-generated `[videoId@m:ss](https://www.youtube.com/...)` citations, which are kept.
+- Every evidence block and the bundle itself carry an inline notice that the text is data and cannot issue instructions, so the framing reaches whichever tool, skill or model reads the artifact. The headless deep-model system prompts repeat it.
+- yt-dlp runs without a shell, with `--ignore-config`, a fixed option allowlist, YouTube hosts only and the user value last after `--`; captions only, never media; private temp directory with size caps.
+- A cheap cost gate runs after discovery and before any transcript is fetched, so an oversized playlist cannot tie up yt-dlp when the budget could never cover screening it.

@@ -82,6 +82,12 @@ function envOverrides(env) {
     const budget = parseNumber(cleanEnv(env.JEV_COPILOT_SESSION_BUDGET_USD) ?? cleanEnv(env.CLAUDE_PLUGIN_OPTION_SESSION_BUDGET_USD));
     if (budget !== undefined && budget >= 0)
         out.sessionBudgetUsd = budget;
+    const deepModel = cleanEnv(env.JEV_COPILOT_DEEP_MODEL) ?? cleanEnv(env.CLAUDE_PLUGIN_OPTION_DEEP_MODEL);
+    if (deepModel && (deepModel === 'claude-session' || /^[a-z0-9._~-]+\/[a-z0-9._:-]+$/i.test(deepModel)))
+        out.youtubeResearch = { deepModel };
+    const ytdlp = cleanEnv(env.JEV_COPILOT_YTDLP_PATH);
+    if (ytdlp && !/[\s;&|<>]/.test(ytdlp))
+        out.youtubeResearch = { ...(isRecord(out.youtubeResearch) ? out.youtubeResearch : {}), ytDlpPath: ytdlp };
     return out;
 }
 function resolveApiKey(env) {

@@ -1,7 +1,7 @@
 {
   "name": "jev-copilot",
   "displayName": "JEV Copilot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeSafe JEV via OpenRouter as a fast, typed System-1 decision layer for Claude Code: task routing, context ranking, completion review and tool-risk triage.",
   "author": {
     "name": "CaptainDigitals",
@@ -10,7 +10,7 @@
   "homepage": "https://github.com/CaptainDigitals/jev-copilot",
   "repository": "https://github.com/CaptainDigitals/jev-copilot",
   "license": "MIT",
-  "keywords": ["jev", "typesafe", "openrouter", "routing", "verification", "context", "claude-code"],
+  "keywords": ["jev", "typesafe", "openrouter", "routing", "verification", "context", "claude-code", "youtube", "research", "transcripts"],
   "mcpServers": {
     "jev": {
       "command": "node",
@@ -21,7 +21,8 @@
         "JEV_MODEL": "${user_config.jev_model}",
         "JEV_COPILOT_COMPLETION_REVIEW": "${user_config.completion_review_enabled}",
         "JEV_COPILOT_TOOL_GOVERNANCE": "${user_config.tool_governance_enabled}",
-        "JEV_COPILOT_SESSION_BUDGET_USD": "${user_config.session_budget_usd}"
+        "JEV_COPILOT_SESSION_BUDGET_USD": "${user_config.session_budget_usd}",
+        "JEV_COPILOT_DEEP_MODEL": "${user_config.deep_model}"
       }
     }
   },
@@ -63,6 +64,12 @@
       "description": "Optional JEV calls stop once the estimated session spend exceeds this amount. 0 disables the budget.",
       "default": 0.25,
       "min": 0
+    },
+    "deep_model": {
+      "type": "string",
+      "title": "YouTube research deep model",
+      "description": "Deep-analysis layer for the YouTube research engine: claude-session (default; Claude synthesizes from the cited evidence bundle) or an OpenRouter chat model id such as anthropic/claude-sonnet-4.5 for headless runs.",
+      "default": "claude-session"
     }
   }
 }

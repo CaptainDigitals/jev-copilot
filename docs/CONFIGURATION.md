@@ -18,6 +18,7 @@ The OpenRouter key is read only from `OPENROUTER_API_KEY` or the plugin's sensit
 | `completion_review_enabled` | boolean | `true` | Run the `Stop` review in `enhance`/`strict`. |
 | `tool_governance_enabled` | boolean | `false` | Add JEV semantic review to `high`-impact tool calls and ask on `destructive` ones. Hard rules apply regardless. |
 | `session_budget_usd` | number | `0.25` | Optional JEV calls stop when the session's estimated spend exceeds this. `0` disables. |
+| `deep_model` | string | `claude-session` | YouTube research deep layer: `claude-session` (Claude synthesizes from the bundle) or an OpenRouter chat model id for headless deep analysis. Env: `JEV_COPILOT_DEEP_MODEL`. |
 
 ## Modes
 
@@ -45,6 +46,26 @@ Any non-secret key from `config/defaults.json` can be overridden per project. Ex
 ```
 
 `excludedPaths` replaces the default list when set, so include the defaults you still want.
+
+## YouTube research (`youtubeResearch`)
+
+| Key | Default | Effect |
+|---|---|---|
+| `ytDlpPath` | `yt-dlp` | Binary name or path (env `JEV_COPILOT_YTDLP_PATH`); `python -m yt_dlp` is tried as fallback |
+| `ytDlpTimeoutMs` | 60000 | Per yt-dlp call; playlist and search listing get 3x |
+| `maxVideos` | 100 | Discovery cap per job (hard max 500) |
+| `maxTranscriptChars` | 400000 | Longer transcripts are truncated before chunking |
+| `languages` | `["en"]` | Caption language preference |
+| `enableAsrFallback` | false | Reserved; ASR is not bundled in this release |
+| `chunk` | 2500 / 3500 / 400 tokens | target / max / min chunk size |
+| `chunksPerJevRequest` | 4 | Chunks screened per JEV call |
+| `workers` | 4 / 2 / 4 / 2 | Concurrency for metadata, transcripts, JEV, deep model |
+| `routing` | see file | Route thresholds (`deep` 0.8, `focused` 0.6, `archive` 0.35) and research-value weights |
+| `deepModel` | `claude-session` | See `deep_model` above |
+| `deepTimeoutMs` / `deepMaxInputChars` / `deepMaxOutputTokens` | 120000 / 60000 / 2500 | Headless deep model limits |
+| `maxDeepChunksPerVideo` / `maxDeepVideos` | 12 / 20 | Evidence per video and default `top` |
+| `budgetUsd` | 5 | Pause before screening when the estimate exceeds this |
+| `dedupe` | true | Title and shingle-overlap duplicate suppression |
 
 ## Thresholds
 
@@ -79,6 +100,8 @@ Defaults are starting points for calibration, not universal truths. Calibrate wi
 | `telemetry.enabled` | true (metadata only) |
 
 ## Data locations
+
+Research jobs, the transcript cache and collections live under `research/` in the same data directory (see [YOUTUBE_RESEARCH.md](YOUTUBE_RESEARCH.md)).
 
 Runtime state lives in `${CLAUDE_PLUGIN_DATA}` when installed as a plugin, otherwise `~/.claude/jev-copilot/`. Override with `JEV_COPILOT_DATA_DIR`.
 

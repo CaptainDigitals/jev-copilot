@@ -12,6 +12,29 @@ export interface CompletionThresholds {
   testsSufficient: number;
 }
 
+export interface YouTubeResearchConfig {
+  ytDlpPath: string;
+  ytDlpTimeoutMs: number;
+  maxVideos: number;
+  maxTranscriptChars: number;
+  languages: string[];
+  enableAsrFallback: boolean;
+  chunk: { targetTokens: number; maxTokens: number; minTokens: number };
+  chunksPerJevRequest: number;
+  workers: { metadata: number; transcripts: number; jev: number; deep: number };
+  routing: { deep: number; focused: number; archive: number; weights: { relevance: number; technicalDepth: number; actionability: number; novelty: number; evidenceDensity: number; promotionPenalty: number } };
+  /** `claude-session` (Claude synthesizes from the bundle) or an OpenRouter chat model id. */
+  deepModel: string;
+  deepTimeoutMs: number;
+  deepMaxInputChars: number;
+  deepMaxOutputTokens: number;
+  maxDeepChunksPerVideo: number;
+  maxDeepVideos: number;
+  budgetUsd: number;
+  dedupe: boolean;
+  frames: { mode: 'off' | 'light' | 'standard' | 'deep' };
+}
+
 export interface Config {
   mode: Mode;
   jevModel: string;
@@ -47,6 +70,7 @@ export interface Config {
   cache: { enabled: boolean; ttlSeconds: number };
   telemetry: { enabled: boolean; includeRawPrompts: boolean; includeSourceText: boolean };
   excludedPaths: string[];
+  youtubeResearch: YouTubeResearchConfig;
   /** Where the config values came from, for /jev-copilot:status. Never includes the key. */
   sources: string[];
 }
@@ -128,6 +152,10 @@ function envOverrides(env: Env): Record<string, unknown> {
   if (governance !== undefined) out.toolGovernanceEnabled = governance;
   const budget = parseNumber(cleanEnv(env.JEV_COPILOT_SESSION_BUDGET_USD) ?? cleanEnv(env.CLAUDE_PLUGIN_OPTION_SESSION_BUDGET_USD));
   if (budget !== undefined && budget >= 0) out.sessionBudgetUsd = budget;
+  const deepModel = cleanEnv(env.JEV_COPILOT_DEEP_MODEL) ?? cleanEnv(env.CLAUDE_PLUGIN_OPTION_DEEP_MODEL);
+  if (deepModel && (deepModel === 'claude-session' || /^[a-z0-9._~-]+\/[a-z0-9._:-]+$/i.test(deepModel))) out.youtubeResearch = { deepModel };
+  const ytdlp = cleanEnv(env.JEV_COPILOT_YTDLP_PATH);
+  if (ytdlp && !/[\s;&|<>]/.test(ytdlp)) out.youtubeResearch = { ...(isRecord(out.youtubeResearch) ? out.youtubeResearch : {}), ytDlpPath: ytdlp };
   return out;
 }
 
