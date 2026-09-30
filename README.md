@@ -122,7 +122,19 @@ claude plugin marketplace add CaptainDigitals/jev-copilot
 claude plugin install jev-copilot@jev-copilot
 ```
 
-Then open `/plugin`, pick **JEV Copilot → Configure**, and paste your OpenRouter key. It is stored in your OS credential store, never in `settings.json`, never in the repository, never in telemetry. Alternatively export `OPENROUTER_API_KEY` in the environment Claude Code runs in.
+Then set your OpenRouter key in one of three ways (first match wins):
+
+1. **Plugin panel**: `/plugin` → **JEV Copilot → Configure** → paste the key. Stored in your OS credential store by Claude Code.
+2. **Environment**: export `OPENROUTER_API_KEY` in the environment Claude Code runs in.
+3. **Guided terminal setup** (for the desktop app or anywhere the panel is unavailable): run `/jev-copilot:configure`, or directly in a terminal
+
+```bash
+node "$HOME/.claude/plugins/cache/jev-copilot/jev-copilot/0.2.1/dist/src/cli.js" configure
+```
+
+   The prompt hides your input, verifies the key with one tiny JEV call, saves it to `~/.jev-copilot/credentials.json` (user-private) and prints a green ✔. `configure --status` shows where the key comes from; `configure --remove` deletes it.
+
+The key is never written to `settings.json`, the repository or telemetry.
 
 Check it works:
 

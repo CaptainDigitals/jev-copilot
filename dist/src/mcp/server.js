@@ -50,7 +50,7 @@ function parseRequirements(value) {
     });
 }
 export function createServer(runtime) {
-    const server = new McpToolServer({ name: 'jev-copilot', version: '0.2.0' });
+    const server = new McpToolServer({ name: 'jev-copilot', version: '0.2.1' });
     const cfg = runtime.config;
     server.register({
         name: 'jev_status',

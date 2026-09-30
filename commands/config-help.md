@@ -4,7 +4,7 @@ description: Explain JEV Copilot configuration options, modes and where to set t
 
 Explain the JEV Copilot configuration to the user, concisely:
 
-**Where to configure**: `/plugin` → JEV Copilot → Configure (values are stored by Claude Code; the OpenRouter key goes to the OS credential store). Environment fallbacks: `OPENROUTER_API_KEY`, `JEV_COPILOT_MODE`, `JEV_MODEL`, `JEV_COPILOT_COMPLETION_REVIEW`, `JEV_COPILOT_TOOL_GOVERNANCE`, `JEV_COPILOT_SESSION_BUDGET_USD`. Per-project overrides (thresholds, limits, mode, excluded paths, but never the key or endpoint) go in a `.jev-copilot.json` file at the project root.
+**Where to configure**: `/plugin` → JEV Copilot → Configure (values are stored by Claude Code; the OpenRouter key goes to the OS credential store). If that panel is not available (desktop app), `/jev-copilot:configure` walks through a terminal prompt with hidden input that verifies the key and stores it in `~/.jev-copilot/credentials.json`. Precedence: plugin panel > `OPENROUTER_API_KEY` > credentials file. Environment fallbacks: `OPENROUTER_API_KEY`, `JEV_COPILOT_MODE`, `JEV_MODEL`, `JEV_COPILOT_COMPLETION_REVIEW`, `JEV_COPILOT_TOOL_GOVERNANCE`, `JEV_COPILOT_SESSION_BUDGET_USD`. Per-project overrides (thresholds, limits, mode, excluded paths, but never the key or endpoint) go in a `.jev-copilot.json` file at the project root.
 
 **Modes**
 - `off`: plugin inert.

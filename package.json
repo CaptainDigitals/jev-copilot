@@ -1,6 +1,6 @@
 {
   "name": "jev-copilot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Claude Code plugin that adds TypeSafe JEV (via OpenRouter) as a fast, typed System-1 decision layer: task routing, context ranking, completion review and tool-risk triage.",
   "private": true,
   "type": "module",

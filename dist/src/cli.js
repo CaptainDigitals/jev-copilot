@@ -8,9 +8,11 @@ import { classifyToolAction } from './policy/tool-risk.js';
 import { currentSessionId, loadSession, Runtime } from './runtime/index.js';
 import { redactTextDetailed } from './security/redact.js';
 import { runYouTube, YOUTUBE_HELP } from './cli-youtube.js';
+import { CONFIGURE_HELP, runConfigure } from './cli-configure.js';
 const HELP = `JEV Copilot CLI (shares runtime, cache and telemetry with the plugin hooks)
 
   status                 configuration + connectivity check + session stats
+${CONFIGURE_HELP}
   analyze "<task>"       JEV task profile and strategy for a task
   context "<task>"       discover + rank repository context for a task (run inside the repo)
   review ["<claim>"]     completion review using the current hooked session state
@@ -29,7 +31,7 @@ function printStatus(report) {
         'Provider: OpenRouter',
         `Model: ${report.model}`,
         `API: ${report.api}${report.apiDetail ? ` (${report.apiDetail})` : ''}`,
-        `Key configured: ${report.keyConfigured ? 'yes' : 'no'}`,
+        `Key configured: ${report.keyConfigured ? `yes (${report.keySource})` : 'no — run: node dist/src/cli.js configure'}`,
         `Completion review: ${report.completionReview ? 'enabled' : 'disabled'}`,
         `Tool governance: ${report.toolGovernance ? 'high-impact only' : 'hard rules only'}`,
         `Session budget: $${report.sessionBudgetUsd}`,
@@ -125,6 +127,9 @@ async function main(argv) {
         case 'youtube':
         case 'yt':
             return runYouTube(rest, runtime);
+        case 'configure':
+        case 'config':
+            return runConfigure(rest);
         case 'redact': {
             const [file] = rest;
             if (!file)

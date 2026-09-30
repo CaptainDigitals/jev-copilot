@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readStoredKey } from './credentials.js';
 const MODES = ['off', 'assist', 'enhance', 'strict'];
 const PROJECT_OVERRIDE_FILE = '.jev-copilot.json';
 export function pluginRoot() {
@@ -90,14 +91,21 @@ function envOverrides(env) {
         out.youtubeResearch = { ...(isRecord(out.youtubeResearch) ? out.youtubeResearch : {}), ytDlpPath: ytdlp };
     return out;
 }
+/**
+ * Key precedence: the plugin's sensitive user option (Claude Code credential store), then the
+ * environment, then the plugin-owned credentials file written by `cli.js configure`.
+ */
 function resolveApiKey(env) {
-    const candidates = [env.OPENROUTER_API_KEY, env.CLAUDE_PLUGIN_OPTION_OPENROUTER_API_KEY];
-    for (const candidate of candidates) {
-        const v = cleanEnv(candidate);
-        if (v)
-            return v;
-    }
-    return '';
+    const fromPlugin = cleanEnv(env.CLAUDE_PLUGIN_OPTION_OPENROUTER_API_KEY);
+    if (fromPlugin)
+        return { apiKey: fromPlugin, keySource: 'plugin-config' };
+    const fromEnv = cleanEnv(env.OPENROUTER_API_KEY);
+    if (fromEnv)
+        return { apiKey: fromEnv, keySource: 'environment' };
+    const stored = readStoredKey(env);
+    if (stored)
+        return { apiKey: stored, keySource: 'credentials-file' };
+    return { apiKey: '', keySource: 'none' };
 }
 function validateEndpoint(endpoint, fallback) {
     if (typeof endpoint !== 'string')
@@ -138,11 +146,15 @@ export function loadConfig(env = process.env, cwd = process.cwd()) {
         sources.push('environment');
     }
     const modeValue = parseMode(typeof merged.mode === 'string' ? merged.mode : undefined) ?? 'enhance';
+    const key = resolveApiKey(env);
+    if (key.keySource === 'credentials-file')
+        sources.push('credentials-file');
     const config = {
         ...merged,
         mode: modeValue,
         endpoint: validateEndpoint(merged.endpoint, 'https://openrouter.ai/api/alpha/decisions'),
-        apiKey: resolveApiKey(env),
+        apiKey: key.apiKey,
+        keySource: key.keySource,
         sources,
     };
     return config;

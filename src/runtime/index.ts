@@ -50,6 +50,7 @@ export interface StatusReport {
   model: string;
   endpointHost: string;
   keyConfigured: boolean;
+  keySource: Config['keySource'];
   api: 'connected' | 'error' | 'not-configured' | 'not-checked';
   apiDetail?: string;
   completionReview: boolean;
@@ -265,6 +266,7 @@ export class Runtime {
       model: this.config.jevModel,
       endpointHost: new URL(this.config.endpoint).hostname,
       keyConfigured: this.client.configured,
+      keySource: this.config.keySource,
       api: this.client.configured ? 'not-checked' : 'not-configured',
       completionReview: this.config.completionReviewEnabled,
       toolGovernance: this.config.toolGovernanceEnabled,
@@ -275,7 +277,8 @@ export class Runtime {
     };
     if (checkApi && this.client.configured && this.config.mode !== 'off') {
       try {
-        await this.decide('connectivity', '1.0.0', { ping: 'JEV Copilot connectivity check' }, { reachable: { type: 'noul', instructions: 'Is `ping` a connectivity check message?' } }, { optional: false });
+        // A nonce defeats the decision cache: a connectivity check must reach OpenRouter with the current key.
+        await this.decide('connectivity', '1.0.0', { ping: 'JEV Copilot connectivity check', nonce: `${this.now()}-${Math.random().toString(36).slice(2, 10)}` }, { reachable: { type: 'noul', instructions: 'Is `ping` a connectivity check message?' } }, { optional: false });
         report.api = 'connected';
       } catch (error) {
         report.api = 'error';

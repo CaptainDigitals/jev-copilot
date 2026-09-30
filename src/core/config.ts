@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readStoredKey, type KeySource } from './credentials.js';
 
 export type Mode = 'off' | 'assist' | 'enhance' | 'strict';
 
@@ -71,6 +72,8 @@ export interface Config {
   telemetry: { enabled: boolean; includeRawPrompts: boolean; includeSourceText: boolean };
   excludedPaths: string[];
   youtubeResearch: YouTubeResearchConfig;
+  /** Which source supplied the API key (never the key itself). */
+  keySource: KeySource;
   /** Where the config values came from, for /jev-copilot:status. Never includes the key. */
   sources: string[];
 }
@@ -159,13 +162,18 @@ function envOverrides(env: Env): Record<string, unknown> {
   return out;
 }
 
-function resolveApiKey(env: Env): string {
-  const candidates = [env.OPENROUTER_API_KEY, env.CLAUDE_PLUGIN_OPTION_OPENROUTER_API_KEY];
-  for (const candidate of candidates) {
-    const v = cleanEnv(candidate);
-    if (v) return v;
-  }
-  return '';
+/**
+ * Key precedence: the plugin's sensitive user option (Claude Code credential store), then the
+ * environment, then the plugin-owned credentials file written by `cli.js configure`.
+ */
+function resolveApiKey(env: Env): { apiKey: string; keySource: KeySource } {
+  const fromPlugin = cleanEnv(env.CLAUDE_PLUGIN_OPTION_OPENROUTER_API_KEY);
+  if (fromPlugin) return { apiKey: fromPlugin, keySource: 'plugin-config' };
+  const fromEnv = cleanEnv(env.OPENROUTER_API_KEY);
+  if (fromEnv) return { apiKey: fromEnv, keySource: 'environment' };
+  const stored = readStoredKey(env);
+  if (stored) return { apiKey: stored, keySource: 'credentials-file' };
+  return { apiKey: '', keySource: 'none' };
 }
 
 function validateEndpoint(endpoint: unknown, fallback: string): string {
@@ -207,11 +215,14 @@ export function loadConfig(env: Env = process.env, cwd: string = process.cwd()):
   }
 
   const modeValue = parseMode(typeof merged.mode === 'string' ? merged.mode : undefined) ?? 'enhance';
+  const key = resolveApiKey(env);
+  if (key.keySource === 'credentials-file') sources.push('credentials-file');
   const config = {
-    ...(merged as unknown as Omit<Config, 'apiKey' | 'sources' | 'mode' | 'endpoint'>),
+    ...(merged as unknown as Omit<Config, 'apiKey' | 'sources' | 'mode' | 'endpoint' | 'keySource'>),
     mode: modeValue,
     endpoint: validateEndpoint(merged.endpoint, 'https://openrouter.ai/api/alpha/decisions'),
-    apiKey: resolveApiKey(env),
+    apiKey: key.apiKey,
+    keySource: key.keySource,
     sources,
   } as Config;
   return config;

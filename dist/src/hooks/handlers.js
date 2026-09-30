@@ -39,7 +39,7 @@ export function onSessionStart(runtime, input) {
         return undefined;
     const degraded = !runtime.client.configured;
     const lines = [
-        `JEV Copilot is active (mode: ${cfg.mode}, model: ${cfg.jevModel}${degraded ? ', DEGRADED: no OpenRouter key configured' : ''}).`,
+        `JEV Copilot is active (mode: ${cfg.mode}, model: ${cfg.jevModel}${degraded ? ', DEGRADED: no OpenRouter key configured. Set it with /jev-copilot:configure (terminal prompt, hidden input) or /plugin → JEV Copilot → Configure' : ''}).`,
         degraded
             ? 'Automatic JEV analysis is disabled until an OpenRouter key is set via the plugin config or OPENROUTER_API_KEY. Normal Claude workflow continues.'
             : `JEV performs bounded typed judgments only; you still reason, plan and implement. Explicit tools: jev_analyze_task, jev_context, jev_rank_context, jev_review_completion, jev_assess_tool_action, jev_status, jev_session_stats (MCP server "jev"). Commands: /jev-copilot:status, :analyze, :plan, :context, :review, :stats, :config-help.`,

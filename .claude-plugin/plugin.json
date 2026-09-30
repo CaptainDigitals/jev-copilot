@@ -1,7 +1,7 @@
 {
   "name": "jev-copilot",
   "displayName": "JEV Copilot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeSafe JEV via OpenRouter as a fast, typed System-1 decision layer for Claude Code: task routing, context ranking, completion review and tool-risk triage.",
   "author": {
     "name": "CaptainDigitals",
@@ -30,7 +30,7 @@
     "openrouter_api_key": {
       "type": "string",
       "title": "OpenRouter API key",
-      "description": "Used only by the local JEV runtime to call the OpenRouter Decisions API. Stored in your OS credential store. Leave empty to fall back to the OPENROUTER_API_KEY environment variable.",
+      "description": "Used only by the local JEV runtime to call the OpenRouter Decisions API. Stored in your OS credential store. Leave empty to fall back to the OPENROUTER_API_KEY environment variable or to the key saved by `/jev-copilot:configure`.",
       "sensitive": true
     },
     "mode": {

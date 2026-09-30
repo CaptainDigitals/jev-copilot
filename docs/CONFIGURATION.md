@@ -6,7 +6,17 @@ Configuration is resolved in this order, later sources winning:
 2. `.jev-copilot.json` in the project root (non-secret keys only)
 3. Environment variables, including the `CLAUDE_PLUGIN_OPTION_*` variables Claude Code derives from the plugin's user configuration
 
-The OpenRouter key is read only from `OPENROUTER_API_KEY` or the plugin's sensitive `openrouter_api_key` option. A project file can never set the key or change the endpoint host.
+The OpenRouter key is read, in order, from the plugin's sensitive `openrouter_api_key` option, `OPENROUTER_API_KEY`, or the credentials file written by `cli.js configure` (`~/.jev-copilot/credentials.json`, overridable with `JEV_COPILOT_CREDENTIALS_FILE`). A project file can never set the key or change the endpoint host. `status` and `jev_status` report `keySource` so you can see which one is active.
+
+### Guided key setup
+
+```bash
+node dist/src/cli.js configure            # masked prompt → verify → save → green ✔
+node dist/src/cli.js configure --status   # which source supplies the key
+node dist/src/cli.js configure --remove   # delete the stored key
+```
+
+Inside Claude Code, `/jev-copilot:configure` explains the same flow and never accepts the key in chat. The file is created with mode 0600 where the platform supports it; on Windows it lives under your user profile, which is private to your account by default.
 
 ## Plugin user configuration (`/plugin` → JEV Copilot → Configure)
 

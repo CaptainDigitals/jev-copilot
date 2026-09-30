@@ -2,6 +2,15 @@
 
 All notable changes to JEV Copilot are documented here. The format follows Keep a Changelog and the project uses semantic versioning.
 
+## [0.2.1] - 2026-09-29
+
+### Added
+- Guided key setup for environments without the `/plugin` configure panel (desktop app): `cli.js configure` prompts with hidden input, verifies the key against OpenRouter with one tiny JEV call, stores it in `~/.jev-copilot/credentials.json` (mode 0600 where supported) and confirms with a green ✔; `--status` and `--remove` flags; `/jev-copilot:configure` command that never accepts the key in chat.
+- `keySource` (`plugin-config` / `environment` / `credentials-file` / `none`) in `status`, `jev_status` and the session-start message, which now tells you how to configure a missing key.
+
+### Fixed
+- The connectivity check in `status` / `jev_status` could be answered from the decision cache and report "connected" with an invalid key; it now always reaches OpenRouter.
+
 ## [0.2.0] - 2026-09-28
 
 ### Added
